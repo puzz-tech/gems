@@ -1,0 +1,11 @@
+Docs:
+  - docs/**/*
+  - README.md
+
+CI:
+  - .devcontainer/**/*
+  - .github/**/*
+  - .vscode/**/*
+
+Test:
+  - ./**/*Test.cs
