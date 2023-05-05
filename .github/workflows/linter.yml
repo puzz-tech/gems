@@ -8,18 +8,36 @@ on:
 
 jobs:
   dotnet-format:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Add dotnet-format problem matcher
-        uses: xt0rted/dotnet-format-problem-matcher@v1
-
-      - name: Restore dotnet tools
-        uses: xt0rted/dotnet-tool-restore@v1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "7.0.x"
 
       - name: Run dotnet format
-        uses: xt0rted/dotnet-format@v1
+        id: format
+        uses: eero-dev/dotnet-format@d3f2aef1dee3a6e6ed48183722e118ec24635a67
         with:
-          only-changed-files: "true"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          action: "fix"
+          workspace: "."
+          only-changed-files: false
+
+      - name: Commit files
+        if: steps.format.outputs.has-changes == 'true'
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -a -m 'Automated dotnet-format update
+          Co-authored-by: ${{ github.event.pull_request.user.login }} <${{ github.event.pull_request.user.id }}+${{ github.event.pull_request.user.login }}@users.noreply.github.com>'
+
+      - name: Push changes
+        if: steps.format.outputs.has-changes == 'true'
+        uses: ad-m/github-push-action@0fafdd62b84042d49ec0cb92d9cac7f7ce4ec79e
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.head_ref }}
